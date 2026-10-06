@@ -30,4 +30,12 @@ public class AppointmentController {
 
         return appointmentService.getDoctor(doctorId);
     }
+
+    @GetMapping("/patient/{patientId}")
+    public String getPatient(
+            @PathVariable Long patientId
+    ) {
+
+        return appointmentService.getPatient(patientId);
+    }
 }

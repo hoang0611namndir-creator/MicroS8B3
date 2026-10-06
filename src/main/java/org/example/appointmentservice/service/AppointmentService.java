@@ -1,7 +1,9 @@
 package org.example.appointmentservice.service;
 
+import io.github.resilience4j.retry.annotation.Retry;
 import org.example.appointmentservice.client.DoctorClient;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.example.appointmentservice.client.PatientClient;
 import org.example.appointmentservice.dto.ApiResponseError;
 import org.springframework.stereotype.Service;
 
@@ -9,9 +11,34 @@ import org.springframework.stereotype.Service;
 public class AppointmentService {
 
     private final DoctorClient doctorClient;
+    private final PatientClient patientClient;
 
-    public AppointmentService(DoctorClient doctorClient) {
+
+    public AppointmentService(DoctorClient doctorClient, PatientClient patientClient) {
         this.doctorClient = doctorClient;
+        this.patientClient = patientClient;
+    }
+
+    @Retry(
+            name = "patientRetry",
+            fallbackMethod = "getPatientFallback"
+    )
+    public String getPatient(Long patientId) {
+
+        System.out.println(
+                "Calling Patient-Service..."
+        );
+
+        return patientClient.getPatient(patientId);
+    }
+
+    public String getPatientFallback(
+            Long patientId,
+            Exception e
+    ) {
+
+        return "Không thể kết nối tới Patient-Service. "
+                + "Vui lòng thử lại sau.";
     }
 
     @CircuitBreaker(
